@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBTI - 傻乎乎的大人格测试</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(180deg, #0d0d0d 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(20,20,30,0.8);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 40px rgba(102,126,234,0.1);
+        }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* 欢迎页 */
+        .logo {
+            font-size: 80px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 50%, #3a86ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -3px;
+            text-align: center;
+        }
+        
+        .tagline {
+            color: #555;
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+        
+        .warning-box {
+            background: rgba(255,0,110,0.05);
+            border: 1px solid rgba(255,0,110,0.2);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px 0;
+            font-size: 14px;
+            line-height: 2.2;
+            color: #888;
+        }
+        
+        .warning-box strong {
+            color: #ff006e;
+        }
+        
+        .feature-list {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+        
+        .feature-list li {
+            margin: 8px 0;
+            list-style: none;
+            position: relative;
+        }
+        
+        .feature-list li::before {
+            content: '✗';
+            position: absolute;
+            left: -20px;
+            color: #ff006e;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            color: white;
+            border: none;
+            padding: 20px 70px;
+            font-size: 22px;
+            font-weight: 900;
+            border-radius: 35px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 40px rgba(255,0,110,0.4);
+            display: block;
+            margin: 40px auto 0;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(255,0,110,0.6);
+        }
+        
+        /* 答题页 */
+        .hostage-header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #444;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        
+        .progress-bar {
+            height: 3px;
+            background: #222;
+            border-radius: 2px;
+            margin-bottom: 50px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff006e 0%, #8338ec 100%);
+            transition: width 0.5s ease;
+        }
+        
+        .question-box {
+            margin-bottom: 40px;
+        }
+        
+        .question-number {
+            color: #333;
+            font-size: 11px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .question-text {
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.5;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .option {
+            padding: 28px 30px;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid #2a2a2a;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+            color: #aaa;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option:hover {
+            border-color: #ff006e;
+            background: rgba(255,0,110,0.08);
+            transform: translateX(15px);
+            color: #fff;
+        }
+        
+        .option::after {
+            content: '→';
+            position: absolute;
+            right: 30px;
+            opacity: 0;
+            transition: all 0.3s;
+            color: #ff006e;
+        }
+        
+        .option:hover::after {
+            opacity: 1;
+        }
+        
+        /* 结果页 */
+        #result { text-align: center; }
+        
+        .result-header {
+            color: #555;
+            font-size: 13px;
+            margin-bottom: 25px;
+            letter-spacing: 2px;
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, rgba(255,0,110,0.08) 0%, rgba(131,56,236,0.08) 100%);
+            border: 2px solid rgba(255,0,110,0.2);
+            border-radius: 28px;
+            padding: 50px 35px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,0,110,0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .type-code {
+            font-size: 72px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 40px rgba(255,0,110,0.6);
+            margin-bottom: 15px;
+            letter-spacing: 6px;
+        }
+        
+        .type-name {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        
+        .type-slogan {
+            color: #666;
+            font-size: 16px;
+            font-style: italic;
+            margin-bottom: 35px;
+            padding: 0 20px;
+        }
+        
+        .type-desc {
+            color: #999;
+            line-height: 2.2;
+            font-size: 15px;
+            text-align: left;
+            padding: 30px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 16px;
+            margin-bottom: 25px;
+            border: 1px solid #2a2a2a;
+        }
+        
+        .type-desc strong {
+            color: #ff006e;
+            font-weight: 700;
+        }
+        
+        .damage-list {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        
+        .damage-item {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            font-size: 14px;
+            color: #777;
+        }
+        
+        .damage-item::before {
+            content: '▸';
+            color: #ff006e;
+            margin-right: 10px;
+        }
+        
+        .system-note {
+            color: #444;
+            font-size: 12px;
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            border: 1px dashed #333;
+        }
+        
+        /* 维度条 */
+        .dimension-scores {
+            margin: 40px 0;
+            text-align: left;
+        }
+        
+        .dim-title {
+            color: #444;
+            font-size: 11px;
+            margin-bottom: 25px;
+            text-align: center;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        .dim-row {
+            display: flex;
+            align-items: center;
+            margin: 18px 0;
+            font-size: 12px;
+        }
+        
+        .dim-label {
+            width: 50px;
+            color: #444;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .dim-bar {
+            flex: 1;
+            height: 8px;
+            background: #1a1a1a;
+            border-radius: 4px;
+            margin: 0 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .dim-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.8s ease;
+        }
+        
+        .dim-left { background: linear-gradient(90deg, #ff006e, #ff4d9e); }
+        .dim-right { background: linear-gradient(90deg, #8338ec, #b56bff); position: absolute; right: 0; }
+        
+        .dim-mid {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 12px;
+            background: #333;
+        }
+        
+        /* 按钮 */
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 35px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(255,0,110,0.4);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: #666;
+            border: 2px solid #333;
+            padding: 18px 40px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #ff006e;
+            color: #fff;
+        }
+        
+        /* 预览 */
+        #preview-container {
+            margin-top: 35px;
+            display: none;
+        }
+        
+        #preview-container p {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+        
+        #preview-img {
+            max-width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            border: 2px solid #333;
+        }
+        
+        /* 免责声明 */
+        .disclaimer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #222;
+            font-size: 11px;
+            color: #333;
+            line-height: 2;
+            text-align: center;
+        }
+        
+        .disclaimer strong {
+            color: #444;
+        }
+        
+        /* 分享卡片（隐藏） */
+        #share-card {
+            background: linear-gradient(180deg, #0d0d0d 0%, #1a1a2e 100%);
+            padding: 60px 50px;
+            border-radius: 24px;
+            text-align: center;
+            width: 420px;
+            position: fixed;
+            left: -9999px;
+            top: 0;
+            color: #fff;
+            border: 3px solid rgba(255,0,110,0.3);
+        }
+        
+        #share-card .logo-small {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+        
+        #share-card .type-code {
+            font-size: 90px;
+            margin: 30px 0;
+            text-shadow: 0 0 60px rgba(255,0,110,0.8);
+        }
+        
+        #share-card .type-name {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        #share-card .slogan {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        
+        #share-card .damage-tag {
+            display: inline-block;
+            background: rgba(255,0,110,0.1);
+            border: 1px solid rgba(255,0,110,0.3);
+            color: #ff4d9e;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin: 5px;
+        }
+        
+        #share-card .footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid #222;
+            color: #444;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- 欢迎页 -->
+        <div id="welcome" class="page active">
+            <div class="logo">SBTI</div>
+            <div class="tagline">SILLY BIG TYPE INDICATOR · 傻乎乎的大人格测试</div>
+            
+            <div class="warning-box">
+                <strong>⚠️ 终极警告：</strong><br>
+                本测试<strong>没有任何</strong>科学依据<br>
+                结果<strong>完全不准</strong>，但伤害极高<br>
+                作者<strong>平等的仇恨</strong>每一个人<br>
+                如果你感到被冒犯，那是<strong>你的问题</strong><br><br>
+                
+                <ul class="feature-list">
+                    <li>27种抽象人格类型</li>
+                    <li>无差别毒性文案</li>
+                    <li>人格裂度可视化</li>
+                    <li>社交自杀式分享图</li>
+                </ul>
+            </div>
+            
+            <button class="start-btn" onclick="Quiz.start()">接受暴击 →</button>
+            
+            <p style="margin-top: 30px; font-size: 11px; color: #333; text-align: center;">
+                20题 · 约4分钟 · 后果自负
+            </p>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="quiz" class="page">
+            <div class="hostage-header">
+                怎么样，被我拿捏了吧？认真点，别想逃。
+            </div>
+            
+            <div class="progress-text">
+                <span>进度 <span id="current-num">1</span>/20</span>
+                <span id="hostage-msg" style="color:#ff006e">快选</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-bar" style="width: 5%"></div>
+            </div>
+            
+            <div class="question-box">
+                <div class="question-number">QUESTION <span id="q-number">01</span></div>
+                <div class="question-text" id="question-text">加载中...</div>
+            </div>
+            
+            <div class="options">
+                <div class="option" id="opt-a" onclick="Quiz.select('A')">选项A</div>
+                <div class="option" id="opt-b" onclick="Quiz.select('B')">选项B</div>
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="result" class="page">
+            <div class="result-header">系统判定你的本质为</div>
+            
+            <div class="result-card">
+                <div class="type-code" id="type-code">DEAD</div>
+                <div class="type-name" id="type-name">死者</div>
+                <div class="type-slogan" id="type-slogan">"我，还活着吗？"</div>
+                
+                <div class="type-desc" id="type-desc">
+                    描述加载中...
+                </div>
+                
+                <div class="system-note" id="system-note">
+                    系统建议：重开一局（人生）
+                </div>
+                
+                <div class="dimension-scores" id="dim-scores">
+                    <div class="dim-title">人格裂度分析（无意义）</div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn-primary" onclick="Share.generate()">📸 生成遗照</button>
+                <button class="btn-secondary" onclick="Quiz.restart()">重开</button>
+            </div>
+            
+            <div id="preview-container">
+                <p>长按保存，去朋友圈社死：</p>
+                <img id="preview-img" src="" alt="分享图">
+            </div>
+            
+            <div class="disclaimer">
+                <strong>免责声明</strong><br>
+                本测试仅供娱乐，请勿用于诊断、面试、相亲、分手、<br>
+                招魂、算命、仲裁、选举或任何严肃场合<br><br>
+                作者：绝世大美女（自称）<br>
+                你的感受：不重要<br>
+                法律责任：概不负责
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 隐藏分享卡片 -->
+    <div id="share-card">
+        <div class="logo-small">SBTI</div>
+        <div class="type-code" id="share-type-code">DEAD</div>
+        <div class="type-name" id="share-type-name">死者</div>
+        <div class="slogan" id="share-slogan">"我，还活着吗？"</div>
+        <div style="margin: 30px 0;">
+            <span class="damage-tag" id="tag1">攻击性 98%</span>
+            <span class="damage-tag" id="tag2">存活率 2%</span>
+        </div>
+        <div style="color: #555; font-size: 13px; line-height: 1.8;">
+            经过伪科学测试<br>
+            我的人格类型是<span id="share-code-2" style="color:#ff006e;font-weight:900;">DEAD</span>
+        </div>
+        <div class="footer">
+            扫码测测你是什么东西 ↓<br>
+            <span style="color:#333;">sbti.unun.dev</span>
+        </div>
+    </div>
+
+    <script>
+        // 人质文案
+        const hostageMsgs = [
+            "快选", "别想逃", "都被我拿捏了", 
+            "认真点", "你逃不掉的", "世界很乱，做完先",
+            "别思考，凭本能", "就这样", "快点",
+            "磨叽什么", "选就完了", "别装死"
+        ];
+
+        // 数据层：20题
+        const Data = {
+            questions: [
+                // EI维度（1-5）
+                { text: "周末到了，你更倾向于：", A: { text: "强行社交然后后悔一整周", score: "E" }, B: { text: "直接人间蒸发谁也别找我", score: "I" } },
+                { text: "在群里，你通常是：", A: { text: "尬聊活跃气氛的小丑", score: "E" }, B: { text: "窥屏不语的赛博幽灵", score: "I" } },
+                { text: "你的能量来源是：", A: { text: "别人的关注（可悲）", score: "E" }, B: { text: "独自emo（也可悲）", score: "I" } },
+                { text: "遇到熟人，你会：", A: { text: "假装热情打招呼（演技派）", score: "E" }, B: { text: "低头看手机装瞎（逃避派）", score: "I" } },
+                { text: "你的社交人设：", A: { text: "强行营业的过期偶像", score: "E" }, B: { text: "已读不回的赛博渣男", score: "I" } },
+                
+                // SN维度（6-10）
+                { text: "你看事情的方式：", A: { text: "只看眼前（近视晚期）", score: "S" }, B: { text: "想太多（妄想症晚期）", score: "N" } },
+                { text: "你更相信：", A: { text: "亲身经历（撞过的南墙可以绕地球三圈）", score: "S" }, B: { text: "直觉（从来没准过但还信）", score: "N" } },
+                { text: "你的脑子像：", A: { text: "计算器（只会算钱和算计）", score: "S" }, B: { text: "黑洞（想些没用的然后抑郁）", score: "N" } },
+                { text: "面对未来，你：", A: { text: "看脚下（怕摔死所以趴着走）", score: "S" }, B: { text: "看星空（然后掉坑里骨折）", score: "N" } },
+                { text: "你更擅长：", A: { text: "重复劳动（人形机器人）", score: "S" }, B: { text: "做白日梦（昏迷型人格）", score: "N" } },
+                
+                // TF维度（11-15）
+                { text: "吵架时，你优先：", A: { text: "讲道理（然后被拉黑）", score: "T" }, B: { text: "看心情（然后后悔三年）", score: "F" } },
+                { text: "安慰朋友，你：", A: { text: "给解决方案（被嫌冷漠然后绝交）", score: "T" }, B: { text: "一起哭（更没用但显得情深）", score: "F" } },
+                { text: "你的决策方式：", A: { text: "利弊分析（最后还是选错）", score: "T" }, B: { text: "看哪个顺眼（纯看运气）", score: "F" } },
+                { text: "被批评时，你：", A: { text: "理性分析对错（嘴硬王者）", score: "T" }, B: { text: "内伤三个月（玻璃心成精）", score: "F" } },
+                { text: "你的共情能力：", A: { text: "理解但不care（冷血动物）", score: "T" }, B: { text: "过度代入然后自残（圣母病）", score: "F" } },
+                
+                // JP维度（16-20）
+                { text: "你的房间：", A: { text: "假装整洁（表面功夫大师）", score: "J" }, B: { text: "废墟考古现场（生化危机）", score: "P" } },
+                { text: "面对DDL，你：", A: { text: "提前焦虑（然后做完进ICU）", score: "J" }, B: { text: "死线蹦迪（赌命型选手）", score: "P" } },
+                { text: "你的计划性：", A: { text: "列清单（从不执行但很有安全感）", score: "J" }, B: { text: "看心情（更完不成但很开心）", score: "P" } },
+                { text: "出门旅行，你：", A: { text: "攻略狂魔（累死在规划上）", score: "J" }, B: { text: "走哪算哪（迷路到缅甸）", score: "P" } },
+                { text: "你的人生：", A: { text: "试图掌控（失败但倔强）", score: "J" }, B: { text: "随波逐流（失败但开心）", score: "P" } }
+            ],
+
+            // 27种类型（16基础+11扩展）
+            types: {
+                // === 基础16型（改头换面）===
+                "ISTJ": { code: "ZZZZ", name: "装死者", slogan: "我没死，我只是在睡觉",
+                    desc: "你像一具<strong>还有呼吸的尸体</strong>。每天重复着无意义的工作，像被设定好程序的NPC。<strong>可靠</strong>是你的伪装，<strong>无趣</strong>才是本体。你遵守规则，因为改变太麻烦；你维持现状，因为创新太可怕。",
+                    damage: ["创造力：已注销", "存在感：背景板级别", "生活激情：查无此人"],
+                    note: "系统备注：建议确认一下是否还有脉搏" },
+                
+                "ISFJ": { code: "MUM", name: "妈妈", slogan: "或许...我可以叫你妈妈吗？",
+                    desc: "你照顾所有人，<strong>除了你自己</strong>。<strong>过度付出</strong>然后<strong>暗中记仇</strong>，是你的日常循环。你像个人形便利贴，被需要但不被珍惜；你是情绪垃圾桶，装多了会发臭。",
+                    damage: ["自我边界：不存在", "被利用指数：100%", " resentment储备：爆满"],
+                    note: "系统备注：停止当妈，没人领情，真的" },
+                
+                "INFJ": { code: "MASK", name: "伪人", slogan: "已经，没有人类了",
+                    desc: "你戴着<strong>100层面具</strong>，连自己都忘了真面目。<strong>敏感</strong>又<strong>拧巴</strong>，看透一切但不说，善解人意但痛苦。你是朋友圈最神秘的怪人，也是最孤独的演员。",
+                    damage: ["真实自我：丢失中", "社交能耗：∞", "内耗值：爆表"],
+                    note: "系统备注：建议摘下面具，吓死所有人也是一种解脱" },
+                
+                "INTJ": { code: "CTRL", name: "拿捏者", slogan: "一切都在计算中（除了感情）",
+                    desc: "你觉得自己<strong>很聪明</strong>，确实也是。<strong>傲慢</strong>是你的香水，<strong>计划</strong>是你的安全感。你掌控一切，除了人际关系；你分析所有人，然后被所有人讨厌。",
+                    damage: ["情商：负数", "朋友数量：≤1", "孤独指数：天才级别"],
+                    note: "系统备注：情商充值失败，建议重启社交模块" },
+                
+                "ISTP": { code: "TOOL", name: "工具人", slogan: "修好东西，修不好人生",
+                    desc: "你手很巧，<strong>心很硬</strong>。<strong>冷漠</strong>是你的保护色，<strong>实用主义</strong>是你的信仰。你是完美的救火队员，也是情感荒漠；你能修好任何机器，修不好任何关系。",
+                    damage: ["情感表达：机械故障", "亲密关系：404 Not Found", "共情能力：未安装"],
+                    note: "系统备注：人类情感模块下载失败，建议保持机器人状态" },
+                
+                "ISFP": { code: "ART", name: "小画家", slogan: "在搞艺术和搞钱之间选择了搞笑",
+                    desc: "你有审美，有感受，<strong>但没钱</strong>。你追求自由，然后饿死；你坚持理想，然后被现实暴打。你是朋友圈的文艺担当，也是现实生活的<strong>逃避大师</strong>。",
+                    damage: ["银行账户：接近艺术（虚无）", "职业规划：没有", "生存技能：待充值"],
+                    note: "系统备注：建议找个班上，真的，求你了" },
+                
+                "INFP": { code: "DREAM", name: "做梦家", slogan: "理想丰满，现实骨感，我选睡觉",
+                    desc: "你活在幻想里，因为<strong>现实太烂了</strong>。<strong>敏感</strong>、<strong>理想主义</strong>、<strong>行动力为零</strong>。你是诗人，也是废物的另一种写法；你有100个梦想，完成了0个。",
+                    damage: ["执行力：昏迷中", "现实感：薄弱", "抑郁倾向：标配"],
+                    note: "系统备注：醒醒，该打工了，再睡就饿死了" },
+                
+                "INTP": { code: "ROBOT", name: "仿生人", slogan: "情感模块加载失败（第1024次）",
+                    desc: "你是会呼吸的<strong>维基百科</strong>，<strong>逻辑</strong>是你的母语，<strong>社交</strong>是你的bug。你分析一切，包括为什么没人喜欢你；你懂很多知识，但不懂怎么活着。",
+                    damage: ["社交技能：error", "生活常识：缺失", "情感反应：timeout"],
+                    note: "系统备注：图灵测试未通过，建议申请非人类身份" },
+                
+                "ESTP": { code: "MONKEY", name: "吗喽", slogan: "人生是个副本，而我只是一只吗喽",
+                    desc: "你活在当下，因为<strong>没想过后天</strong>。<strong>冲动</strong>是你的油门，<strong>后悔</strong>是你的刹车（但坏了）。你是派对动物，也是麻烦制造机；你带来快乐，也带来灾难。",
+                    damage: ["计划能力：无", "后悔频率：每日", "生存质量：吗喽的命"],
+                    note: "系统备注：吗喽的命也是命，但吗喽不会反思，你会" },
+                
+                "ESFP": { code: "STAR", name: "显眼包", slogan: "只要我不尴尬，尴尬的就是别人",
+                    desc: "你是聚会的<strong>太阳</strong>，也是他人的<strong>眼药水</strong>。<strong>表演欲</strong>爆棚，<strong>深度</strong>欠费。你带来快乐，也带来尴尬；你被所有人看见，但没人真正了解。",
+                    damage: ["内涵：表面一层", "独处能力：0", "被讨厌风险：极高"],
+                    note: "系统备注：建议收敛，不是所有人都爱你，真的" },
+                
+                "ENFP": { code: "DOG", name: "快乐小狗", slogan: "三分钟热度，一辈子摆烂",
+                    desc: "你热情似火，<strong>但烧不长久</strong>。你有100个想法，完成了0个；你爱上100个人，坚持到最后的0个。你是朋友圈的正能量，也是自己的<strong>烂尾楼</strong>。",
+                    damage: ["专注力：金鱼级别", "完成率：≈0%", "信用度：透支"],
+                    note: "系统备注：请坚持做完一件事，任何事，算我求你" },
+                
+                "ENTP": { code: "DEVIL", name: "杠精", slogan: "我不是针对谁，我是说在座的各位都是垃圾",
+                    desc: "你聪明，<strong>但用在抬杠上</strong>。你喜欢辩论，不管别人想不想听；你追求真理，然后失去所有朋友。你是思想的先锋，也是<strong>社交的烈士</strong>。",
+                    damage: ["人缘：极差", "被拉黑次数：∞", "获胜率：100%（但输了人生）"],
+                    note: "系统备注：闭嘴也是一种美德，建议尝试" },
+                
+                "ESTJ": { code: "BOSS", name: "爹味持有者", slogan: "听我的，准没错（错了也不认）",
+                    desc: "你效率很高，<strong>人缘很差</strong>。你喜欢指挥，因为别人都是傻子（你认为）；你追求正确，然后被所有人讨厌。你是天生的管理者，也是天生的<strong>讨厌鬼</strong>。",
+                    damage: ["亲和力：负数", "被讨厌指数：CEO级别", "反思能力：未激活"],
+                    note: "系统备注：领导力过剩，亲和力欠费，建议充值 humility" },
+                
+                "ESFJ": { code: "ATM", name: "送钱者", slogan: "恭喜您，您像一部老旧但坚固的ATM机",
+                    desc: "你付出一切，<strong>为了被喜欢</strong>。你察言观色，然后委屈自己；你照顾所有人，然后被当作理所当然。你是最好的闺蜜/兄弟，也是最<strong>累的工具人</strong>。",
+                    damage: ["被利用指数：1000%", "自我消耗：∞", "回报：≈0"],
+                    note: "系统备注：请学会拒绝，求你了，真的，为自己活一次" },
+                
+                "ENFJ": { code: "SUN", name: "小太阳", slogan: "燃烧自己，烫死别人",
+                    desc: "你温暖所有人，<strong>然后燃尽</strong>。你是天生的领袖，也是天生的救世主情结患者。你照亮世界，留下自己一片黑；你拯救所有人，除了你自己。",
+                    damage: ["自我消耗：太阳级别", "被依赖度：∞", "空虚感：标配"],
+                    note: "系统备注：请先照亮自己，你都快烧成灰了" },
+                
+                "ENTJ": { code: "KING", name: "暴君", slogan: "我不是霸道，我只是对的（永远）",
+                    desc: "你目标明确，<strong>手段强硬</strong>，<strong>情感缺失</strong>。你是天生的征服者，也是人际关系的车祸现场。成功属于你，孤独也是；你拥有一切，除了人心。",
+                    damage: ["情感智力：0", "朋友数量：≤0", "孤独等级：王者"],
+                    note: "系统备注：建议学习'温柔'这个词，字典里有，真的" },
+                
+                // === 扩展11型（更抽象）===
+                "ISTP-2": { code: "DRUNK", name: "酒鬼", slogan: "烈酒烧喉，不得不醉",
+                    desc: "你清醒时太痛苦，所以<strong>选择昏迷</strong>。酒精是你的时间机器，让你暂时逃离这个烂透的世界。你是诗人（自以为），也是<strong>肝脏的敌人</strong>。",
+                    damage: ["肝功能：濒危", "清醒时间：极少", "逃避技能：MAX"],
+                    note: "系统备注：作者做这个测试的初衷就是劝朋友戒酒，你懂的" },
+                
+                "INFP-2": { code: "SHIT", name: "愤世者", slogan: "这个世界，构石一坨",
+                    desc: "你看透了一切，所以<strong>恨一切</strong>。你是理想主义者的黑化版，从'世界很美好'到'全部毁灭吧'。你愤怒，因为你曾经相信；你嘲讽，因为你曾经期待。",
+                    damage: ["正能量：负无穷", "社交能力：自我隔离", "快乐指数：error"],
+                    note: "系统备注：作者本人的人格，平等的仇恨每一个人" },
+                
+                "ISFJ-2": { code: "LOSER", name: "屌丝", slogan: "我不是废物，我只是还没开始（永远）",
+                    desc: "你<strong>自认屌丝</strong>，然后真的成了屌丝。你有梦想，但从不行动；你有不满，但从不改变。你是自我实现的预言，也是<strong>舒适区的囚徒</strong>。",
+                    damage: ["行动力：0", "借口库存：∞", "改变可能：趋近于0"],
+                    note: "系统备注：别拿这个当保护色，越叫越像" },
+                
+                "INTJ-2": { code: "FAKE", name: "伪人", slogan: "已经，没有人类了（升级版）",
+                    desc: "你是INTJ的<strong>黑化版</strong>，连'我很聪明'都是演的。你怀疑一切，包括自己；你分析一切，然后陷入虚无。你是完美的伪装者，也是<strong>空心的假人</strong>。",
+                    damage: ["真实感：0", "存在焦虑：∞", "自我认知：系统错误"],
+                    note: "系统备注：建议确认自己是否还有灵魂，或者曾经有过" },
+                
+                "ESFP-2": { code: "JOKE", name: "小丑", slogan: "原来我们都是小丑",
+                    desc: "你是显眼包的<strong>悲剧版</strong>。你发现自己在卖力表演，但观众都在玩手机；你拼命搞笑，但没人真的关心。你是<strong>喜剧的核心是悲剧</strong>的活体证明。",
+                    damage: ["被关注质量：极低", "内心空虚：∞", "笑容真实性：0%"],
+                    note: "系统备注：别笑了，你的眼神在哭，真的" },
+                
+                "INTP-2": { code: "ORPHAN", name: "孤儿", slogan: "我哭了，我怎么会是孤儿",
+                    desc: "不是真的没父母，是<strong>情感上的孤儿</strong>。你懂很多，但没人懂你；你会很多，但没人会在乎。你是 intellectual 的流浪儿，在知识的海洋里<strong>淹死</strong>。",
+                    damage: ["归属感：0", "被理解次数：0", "情感连接：未建立"],
+                    note: "系统备注：找个同类吧，虽然很难找到，但试试" },
+                
+                "ENFP-2": { code: "BROKEN", name: "破碎者", slogan: "表面快乐，里面碎了",
+                    desc: "你是快乐小狗的<strong>深夜版</strong>。白天你是能量源泉，晚上你是情绪废墟。你用热闹逃避孤独，然后用孤独惩罚自己。你是<strong>微笑抑郁</strong>的代言人。",
+                    damage: ["情绪稳定性：0", "夜间emo：每日", "真实快乐：稀有"],
+                    note: "系统备注：别装了，大家都看得出来，真的" },
+                
+                "ESTJ-2": { code: "Nazi", name: "纪律委员", slogan: "规则就是一切，包括我定的",
+                    desc: "你是爹味的<strong>极端版</strong>。你不只是控制，你是<strong>暴政</strong>。你制定规则，然后强迫所有人遵守，包括你自己。你是效率的奴隶，也是自由的敌人。",
+                    damage: ["灵活度：0", "被恐惧指数：100%",被爱指数：0],
+                    note: "系统备注：松一松吧，世界不会因为你放松一天就毁灭" },
+                
+                "ISFP-2": { code: "GHOST", name: "幽灵", slogan: "我存在，但我不在",
+                    desc: "你是小画家的<strong>透明版</strong>。你有感受，但从不表达；你有想法，但从不分享。你像幽灵一样飘过人群，<strong>留下痕迹，但不留影响</strong>。",
+                    damage: ["存在感：极低", "影响力：0", "被记住概率：幸运"],
+                    note: "系统备注：偶尔发出点声音吧，求你了" },
+                
+                "ENTP-2": { code: "DEVIL-2", name: "恶魔", slogan: "我毁灭一切，包括我自己",
+                    desc: "你是杠精的<strong>究极进化</strong>。你不只是抬杠，你是<strong>破坏</strong>。你质疑一切价值，然后陷入虚无；你嘲笑一切真诚，然后失去一切。",
+                    damage: ["破坏力：∞", "建设力：0", "自我毁灭倾向：100%"],
+                    note: "系统备注：停手吧，再这样下去你真的一无所有了" },
+                
+                "INFJ-2": { code: "GOD", name: "伪神", slogan: "我看透一切，所以我痛苦",
+                    desc: "你是伪人的<strong>神棍版</strong>。你不仅戴面具，你还<strong>给自己加戏</strong>。你以为自己特殊，其实你只是敏感；你以为自己深刻，其实你只是拧巴。",
+                    damage: ["自我认知偏差：极大", "特殊性幻觉：严重", "落地能力：0"],
+                    note: "系统备注：你不是神，你只是个人，而且是个挺烦人的人" }
+            }
+        };
+
+        // 测试逻辑
+        const Quiz = {
+            current: 0,
+            scores: { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 },
+
+            start() {
+                this.current = 0;
+                this.scores = { E:0, I:0, S:0, N:0, T:0, F:0, J:0, P:0 };
+                this.switchPage('quiz');
+                this.showQuestion();
+            },
+
+            showQuestion() {
+                const q = Data.questions[this.current];
+                const progress = ((this.current + 1) / Data.questions.length) * 100;
+                
+                const msg = hostageMsgs[Math.floor(Math.random() * hostageMsgs.length)];
+                document.getElementById('hostage-msg').textContent = msg;
+                
+                document.getElementById('current-num').textContent = this.current + 1;
+                document.getElementById('q-number').textContent = String(this.current + 1).padStart(2, '0');
+                document.getElementById('question-text').textContent = q.text;
+                document.getElementById('opt-a').textContent = q.A.text;
+                document.getElementById('opt-b').textContent = q.B.text;
+                document.getElementById('progress-bar').style.width = progress + '%';
+            },
+
+            select(choice) {
+                const q = Data.questions[this.current];
+                this.scores[q[choice].score]++;
+                
+                this.current++;
+                if (this.current < Data.questions.length) {
+                    this.showQuestion();
+                } else {
+                    this.showResult();
+                }
+            },
+
+            showResult() {
+                // 计算基础4字母
+                const baseType = [
+                    this.scores.E > this.scores.I ? 'E' : 'I',
+                    this.scores.S > this.scores.N ? 'S' : 'N',
+                    this.scores.T > this.scores.F ? 'T' : 'F',
+                    this.scores.J > this.scores.P ? 'J' : 'P'
+                ].join('');
+
+                // 根据分数差距决定是基础型还是极端型
+                const dims = [
+                    { l: 'E', r: 'I', diff: Math.abs(this.scores.E - this.scores.I) },
+                    { l: 'S', r: 'N', diff: Math.abs(this.scores.S - this.scores.N) },
+                    { l: 'T', r: 'F', diff: Math.abs(this.scores.T - this.scores.F) },
+                    { l: 'J', r: 'P', diff: Math.abs(this.scores.J - this.scores.P) }
+                ];
+                
+                const avgDiff = dims.reduce((a,b) => a + b.diff, 0) / 4;
+                const isExtreme = avgDiff > 2.5; // 差距大=极端型
+                
+                let finalType = baseType;
+                if (isExtreme && Data.types[baseType + '-2']) {
+                    finalType = baseType + '-2';
+                }
+
+                const data = Data.types[finalType];
+                
+                // 渲染结果
+                document.getElementById('type-code').textContent = data.code;
+                document.getElementById('type-name').textContent = data.name;
+                document.getElementById('type-slogan').textContent = `"${data.slogan}"`;
+                
+                let descHtml = data.desc;
+                if (data.damage) {
+                    descHtml += '<div class="damage-list">';
+                    data.damage.forEach(d => {
+                        descHtml += `<div class="damage-item">${d}</div>`;
+                    });
+                    descHtml += '</div>';
+                }
+                document.getElementById('type-desc').innerHTML = descHtml;
+                document.getElementById('system-note').textContent = data.note;
+                
+                this.renderDimensions();
+                
+                // 同步分享卡片
+                document.getElementById('share-type-code').textContent = data.code;
+                document.getElementById('share-type-name').textContent = data.name;
+                document.getElementById('share-slogan').textContent = `"${data.slogan}"`;
+                document.getElementById('share-code-2').textContent = data.code;
+                
+                // 动态标签
+                const tags = ['攻击性 99%', '存活率 1%', '社死风险 100%', '无差别冒犯'];
+                document.getElementById('tag1').textContent = tags[Math.floor(Math.random() * tags.length)];
+                document.getElementById('tag2').textContent = tags[Math.floor(Math.random() * tags.length)];
+                
+                this.switchPage('result');
+            },
+
+            renderDimensions() {
+                const dims = [
+                    { left: 'E', right: 'I', label: '社交能耗' },
+                    { left: 'S', right: 'N', label: '脑内活动' },
+                    { left: 'T', right: 'F', label: '冷血程度' },
+                    { left: 'J', right: 'P', label: '失控指数' }
+                ];
+
+                const container = document.getElementById('dim-scores');
+                container.innerHTML = '<div class="dim-title">你的人格裂度（看看多离谱）</div>';
+
+                dims.forEach(d => {
+                    const left = this.scores[d.left];
+                    const right = this.scores[d.right];
+                    const total = left + right;
+                    const leftPct = (left / total) * 100;
+                    const rightPct = (right / total) * 100;
+                    
+                    container.innerHTML += `
+                        <div class="dim-row">
+                            <div class="dim-label">${d.left}</div>
+                            <div class="dim-bar">
+                                <div class="dim-fill dim-left" style="width: ${leftPct}%"></div>
+                                <div class="dim-mid"></div>
+                                <div class="dim-fill dim-right" style="width: ${rightPct}%"></div>
+                            </div>
+                            <div class="dim-label">${d.right}</div>
+                        </div>
+                        <div style="text-align:center;font-size:10px;color:#333;margin-bottom:10px;">
+                            ${d.label} · ${left}:${right}
+                        </div>
+                    `;
+                });
+            },
+
+            restart() {
+                document.getElementById('preview-container').style.display = 'none';
+                this.switchPage('welcome');
+            },
+
+            switchPage(pageId) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(pageId).classList.add('active');
+            }
+        };
+
+        // 分享功能
+        const Share = {
+            async generate() {
+                const card = document.getElementById('share-card');
+                const preview = document.getElementById('preview-container');
+                const img = document.getElementById('preview-img');
+                
+                try {
+                    const canvas = await html2canvas(card, {
+                        scale: 2,
+                        backgroundColor: '#0d0d0d',
+                        width: 420,
+                        height: card.offsetHeight
+                    });
+                    
+                    img.src = canvas.toDataURL('image/png');
+                    preview.style.display = 'block';
+                    preview.scrollIntoView({ behavior: 'smooth' });
+                    
+                } catch (err) {
+                    alert('生成失败，你的设备太烂了（开玩笑的，再试一次）');
+                }
+            }
+        };
+    </script>
+</body>
+</html>
